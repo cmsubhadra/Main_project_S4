@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private HARClassifier classifier;
 
-    private static String[] labels = {"Biking","DownStairs", "Jogging", "Sitting", "Standing","Upstairs","Waliking",};
+    private static String[] labels = {"Biking","DownStairs", "Jogging", "Sitting", "Standing","Upstairs","Walking",};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +109,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.registerListener(this,mGyroscope, SensorManager.SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(this,mLinearAcceleration, SensorManager.SENSOR_DELAY_FASTEST);
 
-        textToSpeech = new TextToSpeech(this, this);
-        textToSpeech.setLanguage(Locale.US);
-        textToSpeech.setSpeechRate(0.7f);
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS ) {
+
+                    textToSpeech.setLanguage(Locale.US);
+                    textToSpeech.setSpeechRate(0.7f);
+                }}}
+        );
 //        ClassifierSwitch.setChecked(true);
 
     }
@@ -243,17 +249,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if(ttsFlag!=idx){
                     textToSpeech.stop();
                 }
-                ttsFlag=idx;
-
-                if(SoundSwitch.isChecked() == true){
+            if(idx==1 || idx==5)
+                idx=6;
+            if(SoundSwitch.isChecked() == true){
 //                    textToSpeech.speak(labels[idx], TextToSpeech.QUEUE_ADD, null, null);
-                    if(max > 0.50 ) {
-                        textToSpeech.speak(labels[idx], TextToSpeech.QUEUE_ADD, null,
-                                Integer.toString(new Random().nextInt()));
+                Log.i(TAG, "Ttsflag-"+ttsFlag);
+                Log.i(TAG, "index-"+idx);
 
-                    }
+
+                if(max > 0.65 ) {
+                    if(idx==2 && max<0.99)
+                        return;
+                    if(idx==0 && max<0.99)
+                        return;
+
+                    ttsFlag=idx;
+                    textToSpeech.speak(labels[idx], TextToSpeech.QUEUE_ADD, null,
+                            Integer.toString(new Random().nextInt()));
 
                 }
+
+            }
             Log.i(TAG, "Prediction: "+ labels[idx]);
 
 
